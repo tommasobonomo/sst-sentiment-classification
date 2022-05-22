@@ -1,42 +1,13 @@
-import logging
-from dataclasses import dataclass
-from enum import Enum
-from pathlib import Path
-
 import hydra
 import pandas as pd
-from hydra.core.config_store import ConfigStore
 from sklearn.metrics import classification_report
 from sklearn.pipeline import Pipeline
 
-from src.classifiers import XGBoostConfig, XGBoostPredictor
-from src.preprocessors import TfIdfConfig, TfIdfPreprocessor
+from settings import ClassifierType, Config, PreprocessorType, console_logger
+from src.classifiers import TransformerPredictor, XGBoostPredictor
+from src.preprocessors import TfIdfPreprocessor, TransformerTokenizer
 
-console_logger = logging.getLogger(__name__)
-
-
-class PreprocessorType(str, Enum):
-    tfidf = "tfidf"
-    bpe = "bpe"
-
-
-class ClassifierType(str, Enum):
-    xgboost = "xgboost"
-    transformer = "transformer"
-
-
-@dataclass
-class Config:
-    preprocessor: PreprocessorType = PreprocessorType.tfidf
-    classifier: ClassifierType = ClassifierType.xgboost
-    dataset_path: Path = Path("data") / "labelled_sentences.csv"
-    tfidf_config: TfIdfConfig = TfIdfConfig()
-    xgboost_config: XGBoostConfig = XGBoostConfig()
-    merge_dev_with_train: bool = False
-    evaluate_on_dev: bool = False
-
-
-config_store = ConfigStore.instance()
+config_store = hydra.core.config_store.ConfigStore.instance()
 config_store.store(name="config", node=Config)
 
 
@@ -57,15 +28,15 @@ def run(config: Config) -> None:
 
     if config.preprocessor == PreprocessorType.tfidf:
         preprocessor = TfIdfPreprocessor(config.tfidf_config)
-    elif config.preprocessor == PreprocessorType.bpe:
-        raise NotImplementedError("BPE preprocessor not implemented yet")
+    elif config.preprocessor == PreprocessorType.transformer_tokenizer:
+        preprocessor = TransformerTokenizer(config.transformer_name, config.transformer_tokenizer_config)
     else:
         raise ValueError(f"Unsupported preprocessor {config.preprocessor}")
 
     if config.classifier == ClassifierType.xgboost:
         classifier = XGBoostPredictor(config.xgboost_config)
     elif config.classifier == ClassifierType.transformer:
-        raise NotImplementedError("Transformer classifier not implemented yet")
+        classifier = TransformerPredictor(config.transformer_name, config.transformer_predictor_config)
     else:
         raise ValueError(f"Unsupported classifier {config.classifier}")
 
@@ -73,7 +44,7 @@ def run(config: Config) -> None:
 
     console_logger.info("Running training...")
 
-    y_train = train["label"].values
+    y_train = train["label"].values.round()
     X_train = train["sentence"].values
     train_pipeline.fit(X_train, y_train)
 

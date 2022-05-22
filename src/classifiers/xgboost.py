@@ -19,8 +19,6 @@ class XGBoostPredictor(BaseEstimator, TransformerMixin):
         self.model = XGBClassifier(**config)
 
     def fit(self, X: np.ndarray, y: np.ndarray):
-        y = np.round(y)
-
         self.model.fit(X, y)
 
         return self
