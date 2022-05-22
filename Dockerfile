@@ -17,4 +17,6 @@ RUN wget http://nlp.stanford.edu/~socherr/stanfordSentimentTreebank.zip
 RUN unzip stanfordSentimentTreebank.zip
 RUN python -m scripts.prepare_data
 
+ENV WANDB_API_KEY=29786b4d3965893d978b29e824dade840a09c74e
+
 ENTRYPOINT ["python", "-m", "scripts.fit_and_evaluate"]

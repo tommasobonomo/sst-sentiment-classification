@@ -7,3 +7,4 @@ pytorch_lightning==1.6.3
 scikit-learn==1.1.1
 transformers==4.19.2
 xgboost==1.6.1
+wandb==0.12.16
