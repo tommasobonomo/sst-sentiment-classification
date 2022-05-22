@@ -24,7 +24,7 @@ class Config:
     preprocessor: PreprocessorType = PreprocessorType.transformer_tokenizer
     classifier: ClassifierType = ClassifierType.transformer
     dataset_path: Path = Path("data") / "labelled_sentences.csv"
-    merge_dev_with_train: bool = False
+    merge_dev_with_train: bool = True
     evaluate_on_dev: bool = False
     transformer_name: str = "distilbert-base-uncased"
     tfidf_config: TfIdfConfig = TfIdfConfig()

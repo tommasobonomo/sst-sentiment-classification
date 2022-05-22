@@ -1,0 +1,5 @@
+jobId: train-sentiment-classifier
+trainingInput:
+  master-machine-type: standard_gpu
+  master-image-uri: eu.gcr.io/mlcompute-325917/sentiment-classifier
+  scaleTier: CUSTOM

@@ -19,7 +19,7 @@ Batch = BatchEncoding
 @dataclass
 class TransformerPredictorConfig:
     learning_rate: float = 1e-5
-    batch_size: int = 2
+    batch_size: int = 32
     val_fraction: float = 0.2
     fast_dev_run: bool = False
     epochs: int = 10
@@ -38,7 +38,7 @@ class TransformerPredictor(BaseEstimator, ClassifierMixin):
         )
 
         self.callbacks = [EarlyStopping(monitor="val_loss")]
-        self.loggers = [WandbLogger(project="sentiment-classifier")]
+        self.loggers = [WandbLogger(project="sentiment-classifier", anonymous=True)]
 
     def fit(self, X: Dict[str, torch.Tensor], y: np.ndarray):
         # We assume that X is as outputted by a Huggingface tokenizer, i.e. a dict with keys "input_ids" and "attention_mask"
@@ -54,7 +54,9 @@ class TransformerPredictor(BaseEstimator, ClassifierMixin):
         self.trainer = pl.Trainer(
             accelerator="auto",
             fast_dev_run=self.config.fast_dev_run,
-            max_epochs=self.config.epochs
+            max_epochs=self.config.epochs,
+            callbacks=self.callbacks,
+            logger=self.loggers
         )
         self.trainer.fit(self.module, train_dataloaders=train_dataloader, val_dataloaders=val_dataloader)
 
