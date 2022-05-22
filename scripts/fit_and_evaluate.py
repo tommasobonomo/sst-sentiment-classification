@@ -1,3 +1,4 @@
+import logging
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
@@ -8,9 +9,10 @@ from hydra.core.config_store import ConfigStore
 from sklearn.metrics import classification_report
 from sklearn.pipeline import Pipeline
 
-from helpers.logging import console_logger
 from src.classifiers import XGBoostConfig, XGBoostPredictor
 from src.preprocessors import TfIdfConfig, TfIdfPreprocessor
+
+console_logger = logging.getLogger(__name__)
 
 
 class PreprocessorType(str, Enum):
@@ -48,6 +50,9 @@ def run(config: Config) -> None:
 
     train, dev, test = dataset[dataset["split"] == "train"], dataset[dataset["split"] == "dev"], dataset[dataset["split"] == "test"]
 
+    if config.merge_dev_with_train:
+        train = pd.concat([train, dev], axis=0)
+
     console_logger.info("Configuring training pipeline...")
 
     if config.preprocessor == PreprocessorType.tfidf:
@@ -72,12 +77,19 @@ def run(config: Config) -> None:
     X_train = train["sentence"].values
     train_pipeline.fit(X_train, y_train)
 
-    console_logger.info("Running prediction on test set...")
-    y_test = test["label"].values
-    X_test = test["sentence"].values
+    if config.evaluate_on_dev:
+        console_logger.info("Running prediction on dev set...")
+        test_set = dev
+    else:
+        console_logger.info("Running prediction on test set...")
+        test_set = test
+
+    y_test = test_set["label"].values
+    X_test = test_set["sentence"].values
     y_pred = train_pipeline.predict(X_test)
 
-    print(classification_report(y_test.round(), y_pred))
+    report = classification_report(y_test.round(), y_pred, digits=4)
+    print(report)
 
 
 if __name__ == "__main__":

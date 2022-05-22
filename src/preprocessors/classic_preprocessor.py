@@ -11,7 +11,12 @@ from sklearn.utils.validation import check_is_fitted
 
 @dataclass
 class TfIdfConfig:
-    output_dims: int = 50  # Final dimension of the output vector that represents a sample
+    output_dims: int = 50           # Final dimension of the output vector that represents a sample
+    # If TruncatedSVD should be used on the output of Tf-idf.
+    # If it is, the process is also called Latent Semantic Indexing (https://en.wikipedia.org/wiki/Latent_semantic_analysis#Latent_semantic_indexing)
+    use_truncated_svd: bool = True
+    min_ngram_range: int = 1
+    max_ngram_range: int = 1
 
 
 class TfIdfPreprocessor(BaseEstimator, TransformerMixin):
@@ -19,10 +24,17 @@ class TfIdfPreprocessor(BaseEstimator, TransformerMixin):
         super().__init__()
         self.config = config
 
-        self.pipeline = Pipeline([
-            ("tf-idf", TfidfVectorizer(strip_accents="unicode")),
-            ("dimensionality_reduction", TruncatedSVD(n_components=config.output_dims))
-        ])
+        ngram_range = (config.min_ngram_range, config.max_ngram_range)
+
+        if config.use_truncated_svd:
+            self.pipeline = Pipeline([
+                ("tf-idf", TfidfVectorizer(ngram_range=ngram_range, strip_accents="unicode")),
+                ("dimensionality_reduction", TruncatedSVD(n_components=config.output_dims))
+            ])
+        else:
+            self.pipeline = Pipeline([
+                ("tf-idf", TfidfVectorizer(ngram_range=ngram_range, strip_accents="unicode")),
+            ])
 
     def fit(self, X: np.ndarray, y: Optional[np.ndarray] = None):
         self.pipeline.fit(X)
