@@ -18,8 +18,8 @@ Batch = BatchEncoding
 
 @dataclass
 class TransformerPredictorConfig:
-    learning_rate: float = 1e-5
-    batch_size: int = 32
+    learning_rate: float = 1e-6
+    batch_size: int = 16
     val_fraction: float = 0.2
     fast_dev_run: bool = False
     epochs: int = 10
@@ -37,7 +37,7 @@ class TransformerPredictor(BaseEstimator, ClassifierMixin):
             pooling_strategy=config.pooling_strategy
         )
 
-        self.callbacks = [EarlyStopping(monitor="val_loss")]
+        self.callbacks = [EarlyStopping(monitor="val_loss", patience=0)]
         self.loggers = [WandbLogger(project="sentiment-classifier", anonymous=True)]
 
     def fit(self, X: Dict[str, torch.Tensor], y: np.ndarray):
