@@ -38,7 +38,8 @@ class TransformerPredictor(BaseEstimator, ClassifierMixin):
         )
 
         self.callbacks = [EarlyStopping(monitor="val_loss", patience=0)]
-        self.loggers = [WandbLogger(project="sentiment-classifier", anonymous=True)]
+        self.logger = WandbLogger(project="sentiment-classifier", log_model=True)
+        self.logger.watch(self.module)
 
     def fit(self, X: Dict[str, torch.Tensor], y: np.ndarray):
         # We assume that X is as outputted by a Huggingface tokenizer, i.e. a dict with keys "input_ids" and "attention_mask"
@@ -56,7 +57,7 @@ class TransformerPredictor(BaseEstimator, ClassifierMixin):
             fast_dev_run=self.config.fast_dev_run,
             max_epochs=self.config.epochs,
             callbacks=self.callbacks,
-            logger=self.loggers
+            logger=self.logger
         )
         self.trainer.fit(self.module, train_dataloaders=train_dataloader, val_dataloaders=val_dataloader)
 
@@ -66,14 +67,15 @@ class TransformerPredictor(BaseEstimator, ClassifierMixin):
         dataset = Dataset(X)
         dataloader = DataLoader(dataset, batch_size=self.config.batch_size, num_workers=self.config.num_workers)
 
+        if not hasattr(self, "trainer"):
+            self.trainer = pl.Trainer()
+
         with torch.no_grad():
             raw_predictions = self.trainer.predict(self.module, dataloaders=dataloader, return_predictions=True)
 
         prediction_scores = torch.cat(raw_predictions)  # type: ignore
 
-        # As we are simply predicting the best of two classes, we don't need to pass the predictions through a softmax
-        # and can argmax directly on the logits
-        return torch.argmax(prediction_scores, dim=1)
+        return F.softmax(prediction_scores, dim=1).cpu().numpy()
 
 
 class TransformerModule(pl.LightningModule):

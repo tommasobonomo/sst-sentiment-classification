@@ -18,6 +18,6 @@ RUN unzip stanfordSentimentTreebank.zip
 RUN python -m scripts.prepare_data
 
 ENV TOKENIZERS_PARALLELISM=false
-ENV WANDB_API_KEY=29786b4d3965893d978b29e824dade840a09c74e
+ENV WANDB_API_KEY=<YOUR_WANDB_KEY_HERE>
 
 ENTRYPOINT ["python", "-m", "scripts.fit_and_evaluate"]

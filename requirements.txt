@@ -1,6 +1,7 @@
 --extra-index-url https://download.pytorch.org/whl/cu113 torch==1.11.0
 altair-data-server==0.4.1
 altair==4.2.0
+fastapi==0.78.0
 hydra-core==1.2.0
 pandas==1.4.2
 pytorch_lightning==1.6.3
@@ -8,3 +9,4 @@ scikit-learn==1.1.1
 transformers==4.19.2
 xgboost==1.6.1
 wandb==0.12.16
+uvicorn==0.17.6

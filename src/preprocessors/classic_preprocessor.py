@@ -6,17 +6,16 @@ from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.decomposition import TruncatedSVD
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.pipeline import Pipeline
-from sklearn.utils.validation import check_is_fitted
 
 
 @dataclass
 class TfIdfConfig:
-    output_dims: int = 50           # Final dimension of the output vector that represents a sample
+    output_dims: int = 49           # Final dimension of the output vector that represents a sample
     # If TruncatedSVD should be used on the output of Tf-idf.
     # If it is, the process is also called Latent Semantic Indexing (https://en.wikipedia.org/wiki/Latent_semantic_analysis#Latent_semantic_indexing)
     use_truncated_svd: bool = True
     min_ngram_range: int = 1
-    max_ngram_range: int = 1
+    max_ngram_range: int = 2
 
 
 class TfIdfPreprocessor(BaseEstimator, TransformerMixin):
@@ -41,6 +40,4 @@ class TfIdfPreprocessor(BaseEstimator, TransformerMixin):
         return self
 
     def transform(self, X: np.ndarray) -> np.ndarray:
-        check_is_fitted(self.pipeline)
-
         return self.pipeline.transform(X)

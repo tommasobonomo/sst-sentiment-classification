@@ -31,3 +31,4 @@ class Config:
     transformer_tokenizer_config: TransformerTokenizerConfig = TransformerTokenizerConfig()
     xgboost_config: XGBoostConfig = XGBoostConfig()
     transformer_predictor_config: TransformerPredictorConfig = TransformerPredictorConfig()
+    save_model: bool = False
